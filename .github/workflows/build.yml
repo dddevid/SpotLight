@@ -154,6 +154,7 @@ jobs:
           mv SpotLight*.AppImage target/release/spotlight.AppImage
           
           # Snap
+          sudo snap install core22
           cat <<EOF > snapcraft.yaml
           name: spotlight
           version: '1.0.0'
@@ -173,7 +174,7 @@ jobs:
               organize:
                 target/release/spotlight: bin/spotlight
           EOF
-          snapcraft --destructive-mode
+          sudo snapcraft pack --destructive-mode
           mv spotlight_*.snap target/release/spotlight.snap
           
           # Flatpak
