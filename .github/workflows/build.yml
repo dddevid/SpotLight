@@ -74,7 +74,7 @@ jobs:
             DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SpotLight"
           SectionEnd
           EOF
-          makensis installer.nsi
+          "/c/Program Files (x86)/NSIS/makensis.exe" installer.nsi
 
       - name: Package macOS DMG
         if: matrix.os == 'macos-latest'
