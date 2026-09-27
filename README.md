@@ -63,7 +63,7 @@ Since SpotLight relies on Spotify's Web API and playback infrastructure, you nee
 6. Open the app settings to view your **Client ID** and **Client Secret**.
 
 ### 2. Run SpotLight
-You can download the latest standalone executable from the [Releases](https://github.com/tuo-profilo/SpotLight/releases) page, or compile it from source:
+You can download the latest standalone executable from the [Releases](https://github.com/dddevid/SpotLight/releases) page, or compile it from source:
 
 ```bash
 cargo run --release
