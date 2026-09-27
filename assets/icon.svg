@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F141C"/>
+      <stop offset="50%" stop-color="#0A0D12"/>
+      <stop offset="100%" stop-color="#05070A"/>
+    </linearGradient>
+
+    <!-- Border Gradient -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1DB954" stop-opacity="0.4"/>
+      <stop offset="40%" stop-color="#FFFFFF" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#1DB954" stop-opacity="0.05"/>
+    </linearGradient>
+
+    <!-- Spotlight Lamp Source Radial Glow -->
+    <radialGradient id="lampGlow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="25%" stop-color="#69FF9E"/>
+      <stop offset="60%" stop-color="#1DB954" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#1DB954" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Main Cone Beam Gradient -->
+    <linearGradient id="coneBeam" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#1DB954" stop-opacity="0.55"/>
+      <stop offset="25%" stop-color="#1ED760" stop-opacity="0.32"/>
+      <stop offset="65%" stop-color="#1DB954" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#1DB954" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Beam Inner Core -->
+    <linearGradient id="coreBeam" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.75"/>
+      <stop offset="15%" stop-color="#69FF9E" stop-opacity="0.35"/>
+      <stop offset="55%" stop-color="#1ED760" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#1DB954" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Wave Gradient -->
+    <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1DB954"/>
+      <stop offset="25%" stop-color="#24E86B"/>
+      <stop offset="50%" stop-color="#6EFEB0"/>
+      <stop offset="75%" stop-color="#24E86B"/>
+      <stop offset="100%" stop-color="#1DB954"/>
+    </linearGradient>
+
+    <!-- Glow Filter for Waves -->
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur1"/>
+      <feGaussianBlur stdDeviation="18" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Soft Glow for Lens -->
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- App Icon Base Squircle -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <rect x="2" y="2" width="508" height="508" rx="110" fill="none" stroke="url(#borderGrad)" stroke-width="3"/>
+
+  <!-- Background Ambient Depth Glow -->
+  <circle cx="256" cy="300" r="150" fill="#1DB954" opacity="0.07" filter="url(#neonGlow)"/>
+
+  <!-- Spotlight Outer Light Cone -->
+  <path d="M 226 84 L 56 448 C 120 476 392 476 456 448 L 286 84 Z" fill="url(#coneBeam)"/>
+
+  <!-- Spotlight Core Inner Beam -->
+  <path d="M 238 84 L 114 436 C 160 456 352 456 398 436 L 274 84 Z" fill="url(#coreBeam)"/>
+
+  <!-- Pool of Light on Floor -->
+  <ellipse cx="256" cy="442" rx="155" ry="22" fill="#1DB954" opacity="0.22" filter="url(#neonGlow)"/>
+
+  <!-- Illuminated Sound Waves (Spotify Signature Curves in Spotlight) -->
+  <g filter="url(#neonGlow)">
+    <!-- Top Wave Arc -->
+    <path d="M 148 238 C 200 196 312 196 364 238" 
+          fill="none" stroke="url(#waveGrad)" stroke-width="28" stroke-linecap="round"/>
+    
+    <!-- Middle Wave Arc -->
+    <path d="M 174 296 C 216 262 296 262 338 296" 
+          fill="none" stroke="url(#waveGrad)" stroke-width="25" stroke-linecap="round"/>
+    
+    <!-- Bottom Wave Arc -->
+    <path d="M 204 354 C 230 330 282 330 308 354" 
+          fill="none" stroke="url(#waveGrad)" stroke-width="22" stroke-linecap="round"/>
+  </g>
+
+  <!-- Spotlight Hardware Fixture at the Top -->
+  <!-- Lamp Bracket/Mount -->
+  <path d="M 216 54 C 216 46 296 46 296 54 L 288 84 C 288 90 224 90 224 84 Z" fill="#18202C" stroke="#2D3A4F" stroke-width="2"/>
+  
+  <!-- Outer Bezel -->
+  <ellipse cx="256" cy="84" rx="42" ry="13" fill="#111722" stroke="#1DB954" stroke-width="2.5" stroke-opacity="0.7"/>
+  
+  <!-- Luminous Emitter Lens -->
+  <ellipse cx="256" cy="84" rx="34" ry="10" fill="url(#lampGlow)" filter="url(#softGlow)"/>
+  
+  <!-- Bright Center Core -->
+  <ellipse cx="256" cy="84" rx="16" ry="4" fill="#FFFFFF"/>
+</svg>

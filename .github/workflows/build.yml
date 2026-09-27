@@ -1,0 +1,99 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: false
+        type: string
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: spotlight-windows-exe
+            bin_name: spotlight.exe
+          - os: macos-latest
+            artifact_name: spotlight-macos
+            bin_name: spotlight
+          - os: ubuntu-latest
+            artifact_name: spotlight-linux
+            bin_name: spotlight
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Install Linux Dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+      
+      - name: Build SpotLight (Release)
+        run: cargo build --release
+      
+      - name: Upload Executable Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: target/release/${{ matrix.bin_name }}
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
+    steps:
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: spotlight-windows-exe
+          path: out/windows
+      
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: spotlight-macos
+          path: out/macos
+          
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: spotlight-linux
+          path: out/linux
+          
+      - name: Prepare Release Assets
+        run: |
+          mkdir -p release_assets
+          cp out/windows/spotlight.exe release_assets/SpotLight-Windows.exe
+          cp out/macos/spotlight release_assets/SpotLight-macOS
+          cp out/linux/spotlight release_assets/SpotLight-Linux
+          chmod +x release_assets/SpotLight-macOS
+          chmod +x release_assets/SpotLight-Linux
+          
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: SpotLight v${{ github.event.inputs.version }}
+          draft: false
+          prerelease: false
+          files: release_assets/*

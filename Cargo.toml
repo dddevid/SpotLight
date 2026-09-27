@@ -1,0 +1,37 @@
+[package]
+name = "spotlight"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.104"
+dirs = "7.0.0"
+eframe = { version = "0.29.0", default-features = false, features = ["default_fonts", "wgpu"] }
+env_logger = "0.11.11"
+futures-util = "0.3.34"
+librespot = "0.8.0"
+librespot-connect = "0.8.0"
+librespot-core = "0.8.0"
+librespot-discovery = "0.8.0"
+librespot-oauth = "0.8.0"
+librespot-playback = "0.8.0"
+librespot-protocol = "0.8.0"
+log = "0.4.34"
+oauth2 = "4.4.2"
+open = "5.4.4"
+keyring = "3.6.1"
+raw-window-handle = "0.6"
+reqwest = { version = "0.13.5", features = ["json"] }
+serde = "1.0.229"
+serde_json = "1.0.151"
+souvlaki = "0.8"
+thiserror = "2.0.20"
+tokio = "1.53.1"
+toml = "1.1.6"
+urlencoding = "2.1.3"
+warp = "0.4.3"
+arboard = "3.6.1"
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"
