@@ -33,5 +33,9 @@ warp = "0.4.3"
 arboard = "3.6.1"
 image = { version = "0.25", default-features = false, features = ["png"] }
 
+[build-dependencies]
+vergen-gitcl = "=1.0.0"
+vergen-lib = "=0.1.6"
+
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
