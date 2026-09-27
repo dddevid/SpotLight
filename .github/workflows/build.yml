@@ -21,13 +21,10 @@ jobs:
         include:
           - os: windows-latest
             artifact_name: spotlight-windows-exe
-            bin_name: spotlight.exe
           - os: macos-latest
             artifact_name: spotlight-macos
-            bin_name: spotlight
           - os: ubuntu-latest
             artifact_name: spotlight-linux
-            bin_name: spotlight
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -48,12 +45,184 @@ jobs:
       
       - name: Build SpotLight (Release)
         run: cargo build --release
-      
-      - name: Upload Executable Artifact
+
+      - name: Package Windows Setup (NSIS)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          choco install nsis --no-progress || true
+          cat <<'EOF' > installer.nsi
+          OutFile "target\release\SpotLight-Setup.exe"
+          InstallDir "$PROGRAMFILES\SpotLight"
+          Name "SpotLight"
+          RequestExecutionLevel admin
+          
+          Section "Install"
+            SetOutPath "$INSTDIR"
+            File "target\release\spotlight.exe"
+            CreateShortcut "$SMPROGRAMS\SpotLight.lnk" "$INSTDIR\spotlight.exe"
+            CreateShortcut "$DESKTOP\SpotLight.lnk" "$INSTDIR\spotlight.exe"
+            WriteUninstaller "$INSTDIR\uninstall.exe"
+            
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SpotLight" "DisplayName" "SpotLight"
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SpotLight" "UninstallString" '"$INSTDIR\uninstall.exe"'
+            WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SpotLight" "Publisher" "dddevid"
+          SectionEnd
+          
+          Section "Uninstall"
+            Delete "$INSTDIR\spotlight.exe"
+            Delete "$INSTDIR\uninstall.exe"
+            Delete "$SMPROGRAMS\SpotLight.lnk"
+            Delete "$DESKTOP\SpotLight.lnk"
+            RMDir "$INSTDIR"
+            DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SpotLight"
+          SectionEnd
+          EOF
+          makensis installer.nsi
+
+      - name: Package macOS DMG
+        if: matrix.os == 'macos-latest'
+        run: |
+          mkdir -p SpotLight.app/Contents/MacOS
+          mkdir -p SpotLight.app/Contents/Resources
+          cp target/release/spotlight SpotLight.app/Contents/MacOS/SpotLight
+          cat <<EOF > SpotLight.app/Contents/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>SpotLight</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.dddevid.spotlight</string>
+              <key>CFBundleName</key>
+              <string>SpotLight</string>
+              <key>CFBundleVersion</key>
+              <string>1.0.0</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0.0</string>
+              <key>CFBundleIconFile</key>
+              <string>icon.icns</string>
+          </dict>
+          </plist>
+          EOF
+          hdiutil create -volname SpotLight -srcfolder SpotLight.app -ov -format UDZO target/release/SpotLight.dmg
+
+      - name: Package Linux Formats
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          # Install Tools
+          echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+          sudo apt-get update
+          sudo apt-get install -y nfpm snapcraft flatpak flatpak-builder libfuse2
+          
+          # nfpm (deb, rpm, pkg.tar.zst)
+          cat <<EOF > nfpm.yaml
+          name: "spotlight"
+          arch: "amd64"
+          platform: "linux"
+          version: "1.0.0"
+          section: "default"
+          priority: "extra"
+          maintainer: "SpotLight <spotlight@example.com>"
+          description: "SpotLight"
+          vendor: "SpotLight"
+          homepage: "https://github.com/dddevid/SpotLight"
+          license: "MIT"
+          contents:
+            - src: target/release/spotlight
+              dst: /usr/bin/spotlight
+            - src: assets/icon.png
+              dst: /usr/share/pixmaps/spotlight.png
+          EOF
+          nfpm pkg --packager deb --target target/release/spotlight.deb
+          nfpm pkg --packager rpm --target target/release/spotlight.rpm
+          nfpm pkg --packager archlinux --target target/release/spotlight.pkg.tar.zst
+          
+          # AppImage
+          wget -c "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
+          chmod +x linuxdeploy-x86_64.AppImage
+          cat <<EOF > spotlight.desktop
+          [Desktop Entry]
+          Name=SpotLight
+          Exec=spotlight
+          Icon=spotlight
+          Type=Application
+          Categories=Utility;
+          EOF
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+          cp assets/icon.png AppDir/usr/share/icons/hicolor/256x256/apps/spotlight.png || true
+          ./linuxdeploy-x86_64.AppImage --appimage-extract
+          ./squashfs-root/AppRun --appdir AppDir --executable target/release/spotlight --desktop-file spotlight.desktop --icon-file assets/icon.png --output appimage
+          mv SpotLight*.AppImage target/release/spotlight.AppImage
+          
+          # Snap
+          cat <<EOF > snapcraft.yaml
+          name: spotlight
+          version: '1.0.0'
+          summary: SpotLight
+          description: SpotLight
+          confinement: strict
+          grade: stable
+          base: core22
+          apps:
+            spotlight:
+              command: bin/spotlight
+              plugs: [x11, wayland, network, audio-playback]
+          parts:
+            spotlight:
+              plugin: dump
+              source: .
+              organize:
+                target/release/spotlight: bin/spotlight
+          EOF
+          snapcraft --destructive-mode
+          mv spotlight_*.snap target/release/spotlight.snap
+          
+          # Flatpak
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install -y --noninteractive flathub org.freedesktop.Platform//23.08 org.freedesktop.Sdk//23.08 || true
+          cat <<EOF > com.github.dddevid.SpotLight.yml
+          app-id: com.github.dddevid.SpotLight
+          runtime: org.freedesktop.Platform
+          runtime-version: '23.08'
+          sdk: org.freedesktop.Sdk
+          command: spotlight
+          modules:
+            - name: spotlight
+              buildsystem: simple
+              build-commands:
+                - install -D spotlight /app/bin/spotlight
+              sources:
+                - type: file
+                  path: target/release/spotlight
+          EOF
+          flatpak-builder --user --repo=repo build-dir com.github.dddevid.SpotLight.yml --force-clean
+          flatpak build-bundle repo target/release/spotlight.flatpak com.github.dddevid.SpotLight
+
+      - name: Prepare Artifacts
+        shell: bash
+        run: |
+          mkdir -p dist
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            cp target/release/spotlight.exe dist/SpotLight-Windows.exe
+            cp target/release/SpotLight-Setup.exe dist/
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            cp target/release/SpotLight.dmg dist/
+          elif [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            cp target/release/spotlight.deb dist/
+            cp target/release/spotlight.rpm dist/
+            cp target/release/spotlight.pkg.tar.zst dist/
+            cp target/release/spotlight.AppImage dist/
+            cp target/release/spotlight.snap dist/
+            cp target/release/spotlight.flatpak dist/
+          fi
+
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: target/release/${{ matrix.bin_name }}
+          path: dist/*
           if-no-files-found: error
 
   release:
@@ -61,33 +230,26 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
+    permissions:
+      contents: write
     steps:
       - name: Download Windows Artifact
         uses: actions/download-artifact@v4
         with:
           name: spotlight-windows-exe
-          path: out/windows
+          path: release_assets
       
       - name: Download macOS Artifact
         uses: actions/download-artifact@v4
         with:
           name: spotlight-macos
-          path: out/macos
+          path: release_assets
           
       - name: Download Linux Artifact
         uses: actions/download-artifact@v4
         with:
           name: spotlight-linux
-          path: out/linux
-          
-      - name: Prepare Release Assets
-        run: |
-          mkdir -p release_assets
-          cp out/windows/spotlight.exe release_assets/SpotLight-Windows.exe
-          cp out/macos/spotlight release_assets/SpotLight-macOS
-          cp out/linux/spotlight release_assets/SpotLight-Linux
-          chmod +x release_assets/SpotLight-macOS
-          chmod +x release_assets/SpotLight-Linux
+          path: release_assets
           
       - name: Publish Release
         uses: softprops/action-gh-release@v2
