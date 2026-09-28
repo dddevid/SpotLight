@@ -83,5 +83,15 @@ This wouldn't be possible without the incredible Rust open-source ecosystem:
 
 ---
 
+troubleshooting
+
+macOS: "Spotverlay is damaged and can't be opened" This is a standard macOS Gatekeeper error for apps downloaded outside the Mac App Store that don't have a paid Apple Developer certificate. It's not actually damaged, it's just quarantined. To fix it, download the .dmg and drag the app into your Downloads folder (not Applications yet). Then open your Terminal and run:
+
+xattr -cr ~/Downloads/Spotverlay.app
+
+Now you can move it to your Applications folder and open it normally.
+
+---
+
 ## Disclaimer
 SpotLight is a personal, open-source project and is **not** affiliated with, endorsed by, or in any way associated with Spotify AB. This app uses `librespot` for playback, which may technically violate Spotify's Terms of Service if used outside of personal, non-commercial environments. Use at your own risk. 
