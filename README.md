@@ -83,7 +83,7 @@ This wouldn't be possible without the incredible Rust open-source ecosystem:
 
 ---
 
-troubleshooting
+## troubleshooting
 
 macOS: "Spotverlay is damaged and can't be opened" This is a standard macOS Gatekeeper error for apps downloaded outside the Mac App Store that don't have a paid Apple Developer certificate. It's not actually damaged, it's just quarantined. To fix it, download the .dmg and drag the app into your Downloads folder (not Applications yet). Then open your Terminal and run:
 
