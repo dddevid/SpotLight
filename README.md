@@ -95,3 +95,5 @@ Now you can move it to your Applications folder and open it normally.
 
 ## Disclaimer
 SpotLight is a personal, open-source project and is **not** affiliated with, endorsed by, or in any way associated with Spotify AB. This app uses `librespot` for playback, which may technically violate Spotify's Terms of Service if used outside of personal, non-commercial environments. Use at your own risk. 
+
+<!-- GitAds-Verify: E571VFLCFNUKCSYXED2PU487ZSXGF6RK -->
