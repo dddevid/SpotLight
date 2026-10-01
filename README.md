@@ -25,6 +25,9 @@ Because SpotLight is built with `egui`, the UI completely goes to sleep when you
 
 ---
 
+## GitAds Sponsored
+[![Sponsored by GitAds](https://gitads.dev/v1/ad-serve?source=dddevid/musly@github)](https://gitads.dev/v1/ad-track?source=dddevid/musly@github)
+
 ## Features
 
 - **Native Playback:** Full audio playback powered by `librespot` (Spotify Premium required).
